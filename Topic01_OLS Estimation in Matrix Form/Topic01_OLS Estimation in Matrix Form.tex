@@ -1,0 +1,1311 @@
+\documentclass[10pt]{beamer}
+\usetheme{CambridgeUS}
+%\usetheme{Boadilla}
+\definecolor{myred}{RGB}{163,0,0}
+%\usecolortheme[named=blue]{structure}
+\usecolortheme{dove}
+\usefonttheme[]{professionalfonts}
+\usepackage[english]{babel}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest,compat/show suggested version=false}
+\usetikzlibrary{arrows,shapes,calc,backgrounds}
+\usepackage{bm}
+\usepackage{textcomp}
+\usepackage{gensymb}
+\usepackage{verbatim}
+\usepackage{paratype}
+\usepackage{mathpazo}
+\usepackage{listings}
+\usepackage{csvsimple}
+\usepackage{appendixnumberbeamer}
+
+\newcommand{\cov}{\mathsf{cov}}
+\newcommand{\corr}{\mathsf{corr}}
+\newcommand{\var}{\mathsf{Var}}
+\newcommand{\plim}{\mathrm{plim}}
+\newcommand{\E}{\mathsf{E}}
+\newcommand{\Est}{\mathsf{Est.Var}}
+\newcommand{\Esta}{\mathsf{Est.Asy.Var}}
+\newcommand{\tr}{\mathrm{tr}}
+
+\newcommand{\cc}[1]{\texttt{\textcolor{blue}{#1}}}
+
+\definecolor{ttcolor}{RGB}{0,0,1}%{RGB}{163,0,0}
+
+% Number theorem environments
+\setbeamertemplate{theorem}[ams style]
+\setbeamertemplate{theorems}[numbered]
+
+% Reset theorem-like environments so that each is numbered separately
+\usepackage{etoolbox}
+\undef{\definition}
+\theoremstyle{definition}
+\newtheorem{definition}{\translate{Definition}}
+
+% Change colours for theorem-like environments
+\definecolor{mygreen1}{RGB}{0,96,0}
+\definecolor{mygreen2}{RGB}{229,239,229}
+\setbeamercolor{block title}{fg=white,bg=mygreen1}
+\setbeamercolor{block body}{fg=black,bg=mygreen2}
+
+\lstdefinestyle{numbers}{numbers=left, stepnumber=1, numberstyle=\tiny, numbersep=10pt}
+\lstdefinestyle{MyFrame}{backgroundcolor=\color{yellow},frame=shadowbox}
+
+\lstdefinestyle{rstyle}%
+	{language=R,
+	basicstyle=\footnotesize\ttfamily,
+	commentstyle=\slshape\color{green!50!black},
+	keywordstyle=\color{blue},
+	identifierstyle=\color{blue},
+	stringstyle=\color{orange},
+	%escapechar=\#,
+	rulecolor = \color{lightgray}, 
+	showstringspaces = false,
+	showtabs = false,
+	tabsize = 2,
+	emphstyle=\color{red},
+	frame = single}
+
+\lstdefinestyle{sqlstyle}%
+	{language=SQL,
+	basicstyle=\footnotesize\ttfamily,
+	commentstyle=\slshape\color{green!50!black},
+	keywordstyle=\bfseries\color{blue!50!black},
+	identifierstyle=\color{blue},
+	stringstyle=\color{orange},
+	%escapechar=\#,
+	rulecolor = \color{lightgray}, 
+	showstringspaces = false,
+	showtabs = false,
+	tabsize = 2,
+	emphstyle=\color{red},
+	frame = single}
+
+
+\lstset{language=R,frame=single}
+
+\AtBeginSection{\frame{\sectionpage}}
+
+% Remove Section 1, Section 2, etc. as titles in section pages
+\defbeamertemplate{section page}{mine}[1][]{%
+	\begin{centering}
+		{\usebeamerfont{section name}\usebeamercolor[fg]{section name}#1}
+		\vskip1em\par
+		\begin{beamercolorbox}[sep=12pt,center]{part title}
+			\usebeamerfont{section title}\insertsection\par
+		\end{beamercolorbox}
+	\end{centering}
+} 
+
+\setbeamertemplate{section page}[mine] 
+
+\setbeamertemplate{navigation symbols}{}
+
+\hypersetup{colorlinks, urlcolor=blue, linkcolor = myred}
+
+\title{R404: Applied Econometrics II}
+\subtitle{Topic 1: \textcolor{myred}{The Classical Linear Regression Model:\\ OLS Estimation (in Matrix Form)}}
+\author{Kaloyan Ganev}
+
+\date{2022/2023}
+
+\begin{document}
+\maketitle
+
+\begin{frame}[fragile]
+\frametitle{Lecture Contents}
+\tableofcontents
+\end{frame}
+
+\section{Introduction}
+\begin{frame}[fragile]
+\frametitle{Introduction}
+\begin{itemize}
+	\item The goal of this course is to expand your econometrics knowledge and skills
+	\item We will rely on the concepts and methods learned so far in the first programme module
+	\item Yet, some complications are necessary and they will be introduced accordingly
+	\item We start with an review of convergence concepts as they are frequently needed
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Introduction (2)}
+	\begin{itemize}
+		\item Then we also review OLS estimation so that we can make a smooth transition between courses
+		\item In addition to the above, we aim to use this lecture as a tool facilitating your adaptation to matrix notation
+		\item The text that will follow most closely is Greene's (2013), although the 2018 edition can also be used
+		\item When necessary, other readings will also supplement it 
+	\end{itemize}
+\end{frame}
+
+\section{A review of stochastic convergence}
+\begin{frame}[fragile]
+\frametitle{Convergence in Distribution}
+\begin{itemize}
+	\item The weakest form of stochastic convergence, also known as \textbf{weak convergence}
+	\item Formal definition:
+	\begin{definition}[Convergence in distribution]
+		Let $\{X_{i}\}$ be a sequence of real-valued random variables. This sequence converges in distribution to a random variable $X$ if:
+		\[
+			\lim_{n\to\infty} F_{n}(x) = F(x),
+		\]
+		
+		$\forall x \in \mathbb{R}$ at which $F$ is continuous.
+	\end{definition}
+	\item \textcolor{orange}{\textit{Interpretation:}} new outcomes are increasingly better modelled by a given probability distribution
+	\item Notation:
+	\[
+		X_{n} \overset{d}{\to} X
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Convergence in Probability}
+	\begin{definition}[Convergence in probability]
+		A random sequence $\{X_{i}\}$ converges in probability to the random variable $X$ if $\forall \varepsilon > 0$:
+		\[
+			\lim_{n\to\infty} Prob(|X_{n} - X| \geq \varepsilon) = 0
+		\]
+	\end{definition}
+	\begin{itemize}
+		\item \textcolor{orange}{\textit{Interpretation:}} the probability of unusual outcomes becomes very small when $n$ gets large
+		\item Notation:
+		\[
+			\plim_{n\to\infty} X_{n} = X \quad \textrm{or} \quad X_{n} \overset{p}{\to} X
+		\]
+		\item Convergence in probability implies convergence in distribution; the implication in the reverse direction is only valid when the limiting random variable is a constant
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Almost Sure Convergence}
+\begin{itemize}
+	\item Also known as \textbf{strong convergence}
+	\item Formal definition:
+	\begin{definition}[Almost sure convergence]
+		A random sequence $\{X_{i}\}$ converges almost surely to the random variable $X$ if:
+		\[
+			Prob(\lim_{n\to\infty} X_{n} = X) = 1
+		\]
+	\end{definition}
+	\item \textcolor{orange}{\textit{Interpretation:}} events for which $X_{n}$ does not converge to $X$ have probability equal to 0
+	\item Notation: 
+	\[
+		\quad X_{n} \overset{a.s.}{\to} X
+	\]
+	\item Almost sure convergence implies convergence in probability
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Sure Convergence}
+\begin{definition}[Sure convergence]
+	A sequence $\{X_{i}\}$ of random variables defined on the same probability space (i.e. a random process) converges surely to $X$ if:
+	\[
+		\lim_{n\to\infty}X_n(\omega)=X(\omega), \, \, \forall \omega \in \Omega
+	\]
+	where $\Omega$ is the sample space of the underlying probability space.	
+\end{definition}
+
+\begin{itemize}
+	\item Implies almost sure convergence
+	\item However, there is really not much ``value added'' from using sure convergence over almost sure convergence, so it's very rarely used
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Convergence in Mean}
+\begin{definition}[Convergence in mean]
+	A random sequence $\{X_{i}\}$ converges in the $r$th mean to the random variable $X$ if the $r$th absolute moments $\mathsf{E}(|X_{n}|^{r})$ and $\mathsf{E}(|X|^{r})$ exist and:
+	\[
+		\lim_{n\to\infty}\mathsf{E}(|X_n - X|^{r}) = 0
+	\]
+\end{definition}
+\begin{itemize}
+	\item When $r=1$, we say that we have \textbf{convergence in mean}
+	\item When $r=2$, we say that we have \textbf{convergence in mean square}
+	\item Convergence in the $r$th mean implies convergence in probability
+\end{itemize}
+\end{frame}
+
+\section{Review of OLS}
+\begin{frame}[fragile]
+\frametitle{The OLS Estimator}
+\begin{itemize}
+	\item Start from the matrix form of the regression relationship:
+	\[
+		\mathbf{y} = \mathbf{X}\bm\beta + \bm\varepsilon,
+	\]
+	where $\mathbf{y}$ is an $(n\times 1)$ vector of values of the dependent variable; $\mathbf{X}$ is a $(n \times k)$ matrix of values of independent variables $x_{1}, \ldots, x_{k}$; $\bm \beta$ is a $(k \times 1)$ vector of parameters; and $\bm\varepsilon$ is an $(n\times 1)$ vector of stochastic disturbances
+	\item Note that $\bm \beta$ and $\bm\varepsilon$ are population characteristics
+	\item For each observation, we have:
+	\[
+		y_{i} = \mathbf{x}_{i}'\bm\beta + \varepsilon_{i}, \quad i = 1, 2, \ldots, n
+	\]
+	where $\mathbf{x}_{i}'$ is the $i$th row of the $\mathbf{X}$ matrix
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The OLS Estimator (2)}
+\begin{itemize}
+	\item From the latter we can express the disturbances as follows:
+	\[
+		\varepsilon_{i} = y_{i} - \mathbf{x}_{i}'\bm\beta , \quad i = 1, 2, \ldots, n
+	\]
+	\item Correspondingly, after we find the sample counterparts of population parameters, i.e. $\textbf{b}$, we can write an expression for the estimated regression residuals:
+	\[
+		e_{i} = y_{i} - \mathbf{x}_{i}'\mathbf{b} , \quad i = 1, 2, \ldots, n
+	\]
+	\item The issue is how to choose $\mathbf{b}$ so that the regression line is as close as possible to all points
+	\item We minimize the sum of squared residuals:
+	\[
+		\underset{\mathbf{b}}{\min}\sum_{i=1}^{n}e_{i}^{2} = \underset{\mathbf{b}}{\min}\sum_{i=1}^{n}(y_{i} - \mathbf{x}_{i}'\mathbf{b})^{2}
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The OLS Estimator (3)}
+\begin{itemize}
+	\label{mainslide}
+	\item This is the same as minimizing $\mathbf{e'e}$:
+	\[
+		\underset{\mathbf{b}}{\min}\,S(\mathbf{b}) = \underset{\mathbf{b}}{\min}\,(\mathbf{e'e}) = \underset{\mathbf{b}}{\min}\,[(\mathbf{y - Xb})'(\mathbf{y - Xb})]
+	\]
+	\item Expand the RHS of this to get: \hyperlink{deriv}{\beamerbutton{Derivation}}
+	\[
+		\underset{\mathbf{b}}{\min}\,S(\mathbf{b}) = \underset{\mathbf{b}}{\min}\,(\mathbf{y'y} - 2\mathbf{y'Xb + b'X'Xb})
+	\]
+	\item Differentiate with respect to $\mathbf{b}$ and set the derivatives to zero (first-order condition, FOC):
+	\[
+		\frac{\partial S(\mathbf{b})}{\partial\mathbf{b}} = -2\mathbf{X'y} + 2\mathbf{X'Xb} = \mathbf{0}
+	\]
+	\item Since we start from a quadratic function which is convex, the FOC is also sufficient
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The OLS Estimator (4)}
+\begin{itemize}
+	\item To formalize the latter, look at the second-order condition (SOC):
+	\[
+		\dfrac{\partial^{2}\mathbf{S(b)}}{\partial \mathbf{b}\partial \mathbf{b}'} = 2\mathbf{X'X}
+	\]
+	\item For a minimum, $\mathbf{X'X}$ should be positive definite
+	\item Take an arbitrary non-zero vector $\mathbf{c}$ and let $q = \mathbf{c'X'Xc}$; then:
+	\[
+		q = \mathbf{v'v} = \sum_{i=1}^{n}v_{i}^{2},
+	\]
+	where $\mathbf{v = Xc}$
+	\item $\mathbf{v}$ is non-zero, otherwise it would be a linear combination of the columns in $\mathbf{X}$, the latter implying that $\mathbf{X}$ does not have full column rank
+	\item Therefore, $q > 0$, implying $\mathbf{X'X}$ (and also $2\mathbf{X'X}$) is positive definite
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The OLS Estimator (5)}
+\begin{itemize}
+	\item Rearranging leads to 
+	\[
+		\mathbf{X'Xb} = \mathbf{X'y}
+	\]
+	\item If $\mathbf{(X'X)}^{-1}$ exists, we can multiply both sides by it
+	\item The minimum is achieved therefore at:
+	\[
+		\tikz[baseline]{
+            \node[fill=green!40,anchor=base] (t1)
+            {$ \mathbf{b} = \mathbf{(X'X)}^{-1}\mathbf{X'y}$};
+        }\quad (*)
+	\] 
+	\item Now take the residuals from the OLS regression:
+	\[
+		\mathbf{e} = \mathbf{y - Xb}
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The OLS Estimator (6)}
+\begin{itemize}
+	\item Consider Application 3.2.2 from Greene's book
+	\item We will replicate the final form of the investment equation
+	\item The data and the R code are already provided for you on the course webpage
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Algebraic Aspects of the OLS Solution}
+\begin{itemize}
+	\item Start from $\mathbf{X'Xb} = \mathbf{X'y}$
+	\item Rearrange to get the \textbf{normal equations}:
+	\[
+		\mathbf{X'Xb - X'y = -X'(y - Xb) = -X'e = 0}
+	\]
+	\item The latter means that for each column $\mathbf{x}_{k}$ of $\mathbf{X}$,
+	\[
+		\mathbf{x}_{k}'\mathbf{e} = 0
+	\]
+	\item Assume that the first column of $\mathbf{X}$ is a column of 1s; denote it by $\mathbf{i}$
+	\item This leads to three implications (see next two slides)
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Algebraic Aspects of the OLS Solution (2)}
+\begin{enumerate}
+	\item \textit{The LS residuals sum to zero.} Follows from:
+	\[
+		\mathbf{x}_{1}'\mathbf{e} = \mathbf{i'e} = \sum_{i=1}^{n}e_{i} = 0
+	\]
+	\item \textit{The regression hyperplane passes through the point of means of the data.} From the first normal equation we have 
+	\[
+		\sum_{i=1}^{n}e_{i} = 0 \quad \Rightarrow \quad \sum_{i=1}^{n}(y_{i} - \mathbf{x}_{i}'\mathbf{b}) = 0 
+	\]
+	Divide the latter by $n$ to get:
+	\[
+		\overline{y} = \overline{\mathbf{x}}'\mathbf{b}
+	\]
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Algebraic Aspects of the OLS Solution (3)}
+\begin{enumerate}
+  \setcounter{enumi}{2}
+  \item \textit{The mean of the fitted values equals the mean of the actuals.} The fitted values are $\mathbf{x}_{i}'\mathbf{b}$, while the actual ones are $y_{i}$; the equality was already established in 2. ($\overline{y} = \overline{\mathbf{x}}'\mathbf{b}$) 
+\end{enumerate}
+
+\vspace{0.5cm}
+
+\textcolor{orange}{\textit{Note:} All the above are valid for regressions with an intercept term. If there is no intercept term, the three implications might not be valid.}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Interesting Matrices Related to the OLS Estimator}
+\begin{itemize}
+	\item Substitute $(*)$ for $\mathbf{b}$:
+	\[
+		\mathbf{e} = \mathbf{y - X(X'X)}^{-1}\mathbf{X'y = (I-X(X'X)}^{-1}\mathbf{X')y = My} 
+	\]
+	where $\mathbf{M}$ is an $n\times n$ symmetric and idempotent matrix:
+	\[
+		\mathbf{(I-X(X'X)}^{-1}\mathbf{X')'} = \mathbf{I-X(X'X)}^{-1}\mathbf{X'}
+	\]
+	\[
+		\mathbf{(I-X(X'X)^{-1}X')(I-X(X'X)^{-1}X') = I-X(X'X)^{-1}X'}
+	\]
+	\item $\mathbf{M}$ is interpreted as the matrix that produces the vector of OLS residuals (\textbf{``the residual maker''})
+	\item It is easy to see that
+	\[
+		\mathbf{MX = 0},
+	\]
+	i.e. regressing $\mathbf{X}$ on $\mathbf{X}$ produces a perfect fit, i.e. no residuals
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Interesting Matrices Related to the OLS Estimator (2)}
+\begin{itemize}
+	\item The sample analogue of the regression relationship $\mathbf{y = Xb + e}$ can also be written as:
+	\[
+		\mathbf{y = \widehat{y} + e}
+	\]	
+	\item If we take the product $\mathbf{\widehat{y}'e = b'X'My = b'X'M'y = (MXb)'y}$, then using the fact that $\mathbf{MX = 0}$, we have that:
+	\[
+		\mathbf{\widehat{y}'e = 0},
+	\]
+	i.e. $\mathbf{\hat{y}}$ and $\mathbf{e}$ are orthogonal to each other
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Interesting Matrices Related to the OLS Estimator (3)}
+\begin{itemize}
+	\item We also have:
+	\[
+		\mathbf{\widehat{y} = y -e = y - My = (I-M)y = X(X'X)^{-1}X'y = Py} 
+	\]
+	$\mathbf{P}$ is a \textbf{projection matrix}: it projects $\mathbf{y}$ into the vector of fitted values $\mathbf{\widehat{y}}$
+	\item We can show that $\mathbf{P}$ is also symmetric and idempotent
+	\item Additionally:
+	\[
+		\mathbf{PM = MP = 0}, 
+	\]
+	i.e. $\mathbf{P}$ and $\mathbf{M}$ are orthogonal
+	\item The projection of $\mathbf{X}$ is naturally $\mathbf{X}$, i.e.:
+	\[
+		\mathbf{PX = X}
+	\]
+	\item Combining results, we can write also:
+	\[
+		\mathbf{y = Py + My} = \textrm{\textbf{projection + residual}}
+	\]
+\end{itemize}
+\end{frame}
+
+\iffalse
+\begin{frame}[fragile]
+\frametitle{Goodness of Fit and the Analysis of Variance}
+\begin{itemize}
+	\item Main question: how much of the variation in the regressand is explained by the variation in the regressor(s)?
+	\item Variation of the regressand is defined through the deviations from its mean, e.g. $(y_{i} - \overline{y})$
+	\item Total variation equals
+	\[
+		SST = \sum_{i=1}^{n} (y_{i} - \overline{y})^{2}
+	\]
+	\item The full set of observations can be described with
+	\[
+		\mathbf{y = Xb + e = \widehat{y} + e}
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Goodness of Fit and the Analysis of Variance (2)}
+\begin{itemize}
+	\item For each individual observation, the latter implies
+	\[
+		y_{i} = \widehat{y}_{i} + e_{i} = \mathbf{x}_{i}'\mathbf{b} + e_{i}
+	\]
+	\item Subtract $\overline{y}$ from both sides:
+	\[
+		y_{i} - \overline{y} = \widehat{y}_{i} - \overline{y} + e_{i} = (\mathbf{x}_{i} - \overline{\mathbf{x}})'\mathbf{b} + e_{i}
+	\]
+	\item From this form, it is clear that in a good model, the deviations of the regressors from their means have to explain a substantial part of the deviations of the dependent variable from its mean
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Goodness of Fit and the Analysis of Variance (3)}
+\begin{itemize}
+	\item Define $\mathbf{i}$ to be a column of 1s (the first column of $\mathbf{X}$ corresponding to the intercept term)
+	\item Define also $\mathbf{M}^{0}$ to be the residual maker matrix for $\mathbf{X = i}$
+\end{itemize}
+\end{frame}
+\fi
+
+\begin{frame}[fragile]
+\frametitle{Spherical Disturbances}
+\begin{itemize}
+	\item Recall: two of the CLRM requirements are that the regression random disturbances are homoskedastic and are not autocorrelated
+	\item Using the expectation operator and a bit of matrix notation, we can write the above in shorthand as follows:
+	\[
+		\mathsf{E}(\bm{\varepsilon\varepsilon}') = \sigma^{2}\mathbf{I}
+	\]
+	\item In other words, the variance-covariance matrix of the vector of disturbances $\bm{\varepsilon}$ should be diagonal with each diagonal element equalling $\sigma^{2}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Spherical Disturbances (2)}
+\begin{itemize}
+	\item So, where does ``spherical'' come from?
+	\item Take the graph of the bivariate standard normal distribution as an example:\footnote{Recall that a probability distribution is a mathematical model of the variation of outcomes of a random variable.}
+	\begin{center}
+		\includegraphics[scale=0.45]{./data/fig1}
+	\end{center}
+	\item If you intersect this surface with a plane parallel to the $xy$-plane, the intersection will be a circumference
+\end{itemize} 
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Spherical Disturbances (3)}
+\begin{itemize}
+	\item In analytical terms, the equation:
+	\[
+		f(\mathbf{x}) = c,
+	\]
+	where $f(\mathbf{x}) = \displaystyle \frac{1}{2\pi}\exp\left(-\frac{\mathbf{x'x}}{2}\right)$ is the bivariate standard normal pdf, is an equation of a circumference
+	\item In the three- and higher-dimensional cases, the circumference becomes a sphere; therefore ``spherical''
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Variance}
+\begin{itemize}
+	\item Under the assumption of spherical disturbances, $\var(\bm\varepsilon|\mathbf{X}) = \sigma^{2}\mathbf{I}$
+	\item The conditional variance of $\mathbf{b}$ is:
+	\[
+		\begin{array}{lcl}
+			\var(\mathbf{b|X}) & = & \mathsf{E}[(\mathbf{b}-\bm\beta)(\mathbf{b}-\bm\beta)'|\mathbf{X}] = \mathsf{E}[\mathbf{(X'X)}^{-1}\mathbf{X'}\bm\varepsilon\bm\varepsilon'\mathbf{X(X'X)}^{-1}|\mathbf{X}] = \\
+			\quad\\
+			& = & \mathbf{(X'X)}^{-1}\mathbf{X'}(\sigma^{2}\mathbf{I})\mathbf{X(X'X)}^{-1} = \\
+			\quad\\
+			& = & \tikz[baseline]{
+				\node[fill=green!40,anchor=base] (t1)
+				{$ 	\sigma^{2}\mathbf{(X'X)}^{-1}$};
+			}
+		\end{array}
+	\]
+	
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Variance (2)}
+\begin{itemize}
+	\item \textcolor{red}{Example:} In the simple (bivariate) regression case, the $\mathbf{X}$ matrix is of dimensions $(n\times 2)$ where the first column consists of 1s
+	\item $\mathbf{X'X}$ equals:
+	\[
+	\mathbf{X'X} = 
+	\left[
+	\begin{matrix}
+	n & \sum x_{i}\\
+	\sum x_{i} & \sum x_{i}^{2}
+	\end{matrix}
+	\right]
+	\]
+	\item Its inverse multiplied by $\sigma^{2}$ is:
+	\[
+		\sigma^{2}\mathbf{(X'X)}^{-1} = \frac{\sigma^{2}}{n\sum x_{i}^{2} - \left(\sum x_{i}\right)^{2}}
+		\left[
+			\begin{matrix}
+				\sum x_{i}^{2} & -\sum x_{i}\\
+				-\sum x_{i} & n
+			\end{matrix}
+		\right]
+	\]
+	\item The variance of the slope coefficient $b$ is equal to the $(2,2)$ element of the matrix:
+	\[
+		\var(b|\mathbf{X}) = \frac{\sigma^{2}n}{n\sum x_{i}^{2} - \left(\sum x_{i}\right)^{2}} = \frac{\sigma^{2}}{\sum x_{i}^{2} - \frac{1}{n}\left(\sum x_{i}\right)^{2}} = \frac{\sigma^{2}}{\sum x_{i}^{2} - n\overline{x}^{2}}
+	\]
+	\item From this point onward it is easy to show that:
+	\[
+		\var(b|\mathbf{X}) = \frac{\sigma^{2}}{\sum (x_{i} - \overline{x})^{2}} 
+	\]
+\end{itemize}
+\end{frame}
+
+\iffalse
+\begin{frame}[fragile]
+	\frametitle{Finite-Sample Properties of $\mathbf{b}$: Estimation of Variance}
+	\begin{itemize}
+		\item In the empirical context, the unbiased estimator of the (conditional and unconditional) variance of $\mathbf{b}$ is:
+		\[
+		\var(\mathbf{b|X}) = \var(\mathbf{b}) = s^{2}(\mathbf{X'X})^{-1}
+		\]
+		where $s^{2} = \displaystyle \frac{\mathbf{e'e}}{n-k}$ 
+		\item Because of the fact that the estimator $\mathbf{b}$ is a linear function of $\bm\varepsilon$, then if $\bm\varepsilon$ is multivariate normal, then:
+		\[
+		\mathbf{b|X} \sim \mathcal{N}(\bm\beta, \sigma^{2}(\mathbf{X'X})^{-1})
+		\]
+	\end{itemize}
+\end{frame}
+\fi
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Variance (3)}
+\begin{itemize}
+	\item In order to test hypotheses about $\boldsymbol\beta$, an estimate of the $\sigma^{2}\mathbf{(X'X)}^{-1}$ matrix is required
+	\item $\mathbf{X}$ is simply data, so only an estimate of $\sigma^{2}$ is needed
+	\item We know that $\sigma^{2} = \E(\varepsilon_{i}^{2})$; also, $e_{i}$ are estimates of $\varepsilon_{i}$
+	\item It seems logical to use then
+	\[
+		\widehat{\sigma}^{2} = \dfrac{1}{n}\sum_{i=1}^{n}e_{i}^{2}
+	\]
+	\item However, $e_{i}$ are imperfect estimators of $\varepsilon_{i}$ as
+	\[
+		e_{i} = y_{i} - \mathbf{x}_{i}'\mathbf{b} = y_{i} \textcolor{red}{- \mathbf{x}_{i}'\boldsymbol\beta +  \mathbf{x}_{i}'\boldsymbol\beta} - \mathbf{x}_{i}'\mathbf{b} = \varepsilon_{i} - \mathbf{x}_{i}'(\mathbf{b} - \boldsymbol\beta)
+	\]
+	\item The far RHS suggests that $\widehat{\sigma}^{2}$ is a distorted estimate since it depends on the estimate of $\boldsymbol\beta$
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Variance (4)}
+\begin{itemize}
+	\item Using the fact that $\mathbf{MX = 0}$, the OLS residuals are
+	\[
+		\mathbf{e = My = M(X}\boldsymbol\beta + \boldsymbol\varepsilon) = \mathbf{M}\boldsymbol\varepsilon
+	\]
+	\item The estimator of $\sigma^{2}$ is based on the sum of squared residuals
+	\[
+		\mathbf{e'e} = \boldsymbol\varepsilon'\mathbf{M}\boldsymbol\varepsilon
+	\]
+	\item The expression $\mathbf{e'e}$ is a quadratic form, and its expected value is
+	\[
+		\E(\mathbf{e'e}|\mathbf{X}) = \E(\boldsymbol\varepsilon'\mathbf{M}\boldsymbol\varepsilon|\mathbf{X})
+	\]
+	\item $ \boldsymbol\varepsilon'\mathbf{M}\boldsymbol\varepsilon $ is a scalar, therefore $ \boldsymbol\varepsilon'\mathbf{M}\boldsymbol\varepsilon  = \tr(\boldsymbol\varepsilon'\mathbf{M}\boldsymbol\varepsilon )$
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Variance (5)}
+\begin{itemize}
+	\item The trace of a product of square matrices remains the same irrespective of the permutation of product elements
+	\item This can be transferred to a square matrix pre-multiplied and post-multiplied by a vector such as $ \boldsymbol\varepsilon'\mathbf{M}\boldsymbol\varepsilon $, 
+	\[
+		\E[\tr(\boldsymbol\varepsilon'\mathbf{M}\boldsymbol\varepsilon)|\mathbf{X}] = \E[\tr(\mathbf{M}\boldsymbol\varepsilon\boldsymbol\varepsilon')|\mathbf{X}]
+	\]
+	\item The $ \mathbf{M} $ matrix is a function of $ \mathbf{X} $, therefore
+	\[
+		\E[\tr(\mathbf{M}\boldsymbol\varepsilon\boldsymbol\varepsilon')|\mathbf{X}] = \tr(\mathbf{M}\E[\boldsymbol\varepsilon\boldsymbol\varepsilon'|\mathbf{X}]) = \tr(\mathbf{M}\sigma^{2}\mathbf{I}) = \sigma^{2}\tr(\mathbf{M})
+	\]
+	\item The trace of $ \mathbf{M} $ is only needed here; recall that $ \mathbf{M = I - X(X'X)}^{-1}\mathbf{X'} $
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Variance (6)}
+\begin{itemize}
+	\item Then:
+	\[
+		\begin{array}{lcl}
+			\tr(\mathbf{M}) & = & \tr[\mathbf{I - X(X'X)}^{-1}\mathbf{X'}] = \tr[\mathbf{I - (X'X)}^{-1}\mathbf{X'X}] = \\
+			\quad\\
+			& = & \tr(\mathbf{I}) - \tr[\mathbf{(X'X)}^{-1}\mathbf{X'X}] = n - K
+		\end{array}
+	\]
+	\item Here we used the fact that $ \mathbf{I} $ is $ (n\times n) $ while $ \mathbf{(X'X)}^{-1}\mathbf{X'X}$ is $ (K \times K) $ where $ K $ is the number of regressors (incl. the constant)
+	\item It follows that
+	\[
+			\E(\mathbf{e'e}|\mathbf{X}) = \E(\boldsymbol\varepsilon'\mathbf{M}\boldsymbol\varepsilon|\mathbf{X}) = (n - K) \sigma^{2}
+	\]
+	\item If we use the sample estimator for $ \sigma^{2} $, i.e. $ s^{2} $, we get $\dfrac{n - K}{n}\sum_{i=1}^{n}e_{i}^{2}$ which is biased downwards
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Variance (7)}
+\begin{itemize}
+	\item An unbiased estimator is therefore
+	\[
+	\tikz[baseline]{
+		\node[fill=green!40,anchor=base] (t1)
+		{$s^{2} = \dfrac{\mathbf{e'e}}{n - K}$};
+	}
+	\]
+	\item The standard error of the regression equals $ s $
+	\item The variance estimated from sample data is then
+	\[
+		\Est[\mathbf{b|X}] = s^{2}(\mathbf{X'X})^{-1}
+	\]
+	\item The diagonal elements of this matrix are the variances of the estimated individual regression coefficients, $ b_{k} $
+	\item The square roots of those elements correspondingly provide the \textbf{standard errors} of the estimators
+\end{itemize}	
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The Gauss-Markov Theorem}
+	\begin{theorem}[Gauss-Markov Theorem]
+		The least squares estimator $ \mathbf{b} $ in the linear regression model is the minimum variance linear unbiased estimator of $\boldsymbol\beta$. For any vector of constants $ \mathbf{w} $, the minimum-variance linear unbiased estimator of $ \mathbf{w}'\boldsymbol\beta $ is $ \mathbf{w'b} $
+	\end{theorem}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Finite-Sample Properties of $\mathbf{b}$: Unbiasedness}
+	\begin{itemize}
+		\item According to the Gauss-Markov theorem, the OLS estimator $\mathbf{b}$ is BLU
+		\item Start with:
+		\[
+		\mathbf{b} = \mathbf{(X'X)}^{-1}\mathbf{X'y} = \mathbf{(X'X)}^{-1}\mathbf{X'(X}\bm\beta + \bm\varepsilon) = \bm\beta + \mathbf{(X'X)}^{-1}\mathbf{X'}\bm\varepsilon
+		\]
+		\item From this, linearity with respect to $\bm\varepsilon$ is obvious
+		\item To prove unbiasedness, take expectations conditional on $\mathbf{X}$
+		\[
+		\mathsf{E}(\mathbf{b|X}) = \bm\beta + \mathsf{E}[\mathbf{(X'X)}^{-1}\mathbf{X'}\bm\varepsilon|\mathbf{X}]
+		\]
+		\item The far RHS term equals $\mathbf{0}$, so $\mathsf{E}(\mathbf{b|X}) = \bm\beta$
+		\item Using the law of iterated expectations:
+		\[
+		\mathsf{E}_{\mathbf{X}}[\mathsf{E}(\mathbf{b|X})] = \mathsf{E}(\mathbf{b}) = \bm\beta
+		\]
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Efficiency}
+\begin{itemize}
+	\item To prove ``best'' (i.e. efficient/minimum-variance), take another arbitrary unbiased linear estimator of $\bm\beta$: 
+	\[
+		\mathbf{b}_{0} = \mathbf{Cy} = \mathbf{C(X}\bm\beta + \bm\varepsilon) = \mathbf{CX}\bm\beta + \mathbf{C}\bm\varepsilon
+	\]
+	where $\mathbf{C}$ is of dimensions $(k\times n)$
+	\item Due to unbiasedness, we have:
+	\[
+		\mathsf{E}(\mathbf{Cy|X}) = \mathsf{E}[\mathbf{C(X}\bm\beta + \bm\varepsilon)\mathbf{|X}] = \mathsf{E}[\mathbf{CX}\bm\beta + \mathbf{C}\bm\varepsilon)\mathbf{|X}] = \bm\beta
+	\]
+	\item From this follows that $\mathbf{CX = I}$
+	\item Let $\mathbf{D = C - (X'X)}^{-1}\mathbf{X}'$, so that $\mathbf{Dy = b}_{0}-\mathbf{b}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Efficiency (2)}
+\begin{itemize}
+	\item The conditional variance of $\mathbf{b}_{0}$ is:
+	\[
+		\begin{array}{lcl}
+			\var(\mathbf{b}_{0}|\mathbf{X}) & = & \mathsf{E}[(\mathbf{b}_{0} - \boldsymbol\beta)(\mathbf{b}_{0} - \boldsymbol\beta)'|\mathbf{X}] = \\
+			\quad\\
+			& = & \mathsf{E}[(\mathbf{CX}\bm\beta + \mathbf{C}\bm\varepsilon -\bm\beta)(\mathbf{CX}\bm\beta + \mathbf{C}\bm\varepsilon -\bm\beta)'|\mathbf{X}] = \\
+			\quad\\
+			& = & \mathsf{E}(\mathbf{C}\bm\varepsilon\bm\varepsilon'\mathbf{C}'|\mathbf{X}) = \sigma^{2}\mathbf{CC'} = \\
+			\quad\\
+			& = & \sigma^{2}\{[\mathbf{D + (X'X)}^{-1}\mathbf{X}'][\mathbf{D + (X'X)}^{-1}\mathbf{X}']'\} = \\
+			\quad\\
+			& = & \sigma^{2}\{[\mathbf{D + (X'X)}^{-1}\mathbf{X}'][\mathbf{D' + X(X'X)}^{-1}]\} =\\
+			\quad\\
+			& = & \sigma^{2}[\mathbf{DD' + DX(X'X)}^{-1} + \mathbf{(X'X)}^{-1}\mathbf{X'X(X'X)}^{-1} + \\
+			\quad\\
+			& + & \mathbf{(X'X)}^{-1}\mathbf{X}'\mathbf{D}']
+		\end{array}
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Efficiency (3)}
+\begin{itemize}
+	\item Using the fact that $\mathbf{D = C - (X'X)}^{-1}\mathbf{X}'$ and $\mathbf{CX = I}$, we have:
+	\[
+		\mathbf{DX = CX - (X'X)}^{-1}\mathbf{X'X} = \mathbf{I - I = 0} 
+	\]
+	\item Noting also that $\mathbf{X}'\mathbf{D}' = (\mathbf{DX})'$, the variance simplifies to:
+	\[
+		\var(\mathbf{b}_{0}|\mathbf{X}) = \sigma^{2}[\mathbf{DD'} + \mathbf{(X'X)}^{-1}] = \var(\mathbf{b}|\mathbf{X}) + \sigma^{2}\mathbf{DD'}
+	\]
+	\item We can quickly show that $\mathbf{DD'}$ is positive semi-definite:
+	\[
+		\mathbf{x'DD'x = (D'x)'D'x = z'z} \geq 0
+	\]
+	(In the latter we also make use of the fact that $\mathbf{D}$ has more rows ($n$) than columns ($k$), therefore it cannot have full rank; in other words, there exists some $\mathbf{x} \neq \mathbf{0}$ for which $\mathbf{D'x} = 0$.)
+	\item \textcolor{red}{The conclusion is that the variance of $\mathbf{b}_{0}$ is at least as large as that of $\mathbf{b}$}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Finite-Sample Properties of $\mathbf{b}$: Stochastic Regressors}
+\begin{itemize}
+	\item What if $\mathbf{X}$ is stochastic (i.e. we have stochastic regressors)?
+	\item We already have the conditional mean and variance
+	\item We can use that to obtain the unconditional variance by averaging over all possible values of $\mathbf{X}$
+	\item Using the variance decomposition formula, we have:
+	\[
+		\var(\mathbf{b}) = \mathsf{E}_{\mathbf{X}}[\var(\mathbf{b|X})] + \var_{\mathbf{X}}[\mathsf{E}(\mathbf{b|X})]
+	\]
+	\item The far right term is 0 since we have a constant vector in the square brackets ($\bm\beta$)
+	\item Therefore:
+	\[
+		\var(\mathbf{b}) = \mathsf{E}_{\mathbf{X}}[\var(\mathbf{b|X})] = \mathsf{E}_{\mathbf{X}}[\sigma^{2}(\mathbf{X'X})^{-1}] = \sigma^{2}\mathsf{E}_{\mathbf{X}}[(\mathbf{X'X})^{-1}]
+	\]
+	\item Because efficiency is valid for any value of $\mathbf{X}$, then it is valid also for an average of the possible values of $\mathbf{X}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Finite-Sample Properties of $\mathbf{b}$: Normality}
+	\begin{itemize}
+		\item All the discussion so far did not use any assumption on the distribution of $ \boldsymbol\varepsilon $
+		\item In other words, the specification that was used is \textbf{semiparametric}
+		\item Now recall $ \mathbf{b} $ is a linear function of $ \boldsymbol\varepsilon $
+		\item If $ \boldsymbol\varepsilon $ is multivariate normal, then the conditional distribution of $ \mathbf{b} $ is
+		\[
+		\mathbf{b|X} \sim \mathcal{N}[\boldsymbol\beta, \sigma^{2}\mathbf{(X'X)}^{-1}]
+		\]
+		\item For each element of $ \mathbf{b} $ we have
+		\[
+		b_{k}|\mathbf{X} \sim \mathcal{N}[\beta_{k}, \sigma^{2}\mathbf{(X'X)}_{kk}^{-1}]
+		\]
+	\end{itemize}	
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $ \mathbf{b} $: General Remarks}
+\begin{itemize}
+	\item Unbiasedness in finite samples is a useful indicator whether the estimator does not underestimate of overestimate \textit{systematically} the true value
+	\item However, it has significant limitations when it comes to estimation strategy:
+	\begin{itemize}
+		\item Except in the linear regression model, the estimator is rarely unbiased
+		\item Unbiasedness in no way tells us that more information (a larger sample) is better than less
+	\end{itemize}
+	\item The desirable property of an estimator is therefore the following: when sample size increases, it gets more accurate
+	\item Thus, we look for \textbf{consistency} and not so much for unbiasedness
+\end{itemize}	
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Consistency}
+\begin{itemize}
+	\item Assume that the data generating mechanism for $\mathbf{X}$ is unspecified
+	\item In particular, this means that $ \mathbf{X} $ can contain both stochastic and deterministic vectors independent from $ \boldsymbol\varepsilon $
+	\item Two critical assumptions are made:
+	\begin{itemize}
+		\item $ (\mathbf{x}_{i}, \boldsymbol\varepsilon_{i}) $ is a sequence of i.i.d. \textit{observations} (not variables)
+			\item Assume also that asymptotically the data behave as follows:
+		\[
+		\underset{n\to\infty}{\plim}\frac{\mathbf{X'X}}{n} = \mathbf{Q}
+		\]
+		where $\mathbf{Q}$ is a positive definite matrix
+	\end{itemize}
+
+	\item It is clear that if $ \mathbf{X} $ has full column rank, then $ \frac{\mathbf{X'X}}{n} $ is positive definite in a \textit{specific} sample of $ n \geq K $ observations
+	\item The second critical assumption extends the above conclusion for a specific sample to \textit{any} sample which has $ n \geq K $ observations
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Asymptotic Properties of $\mathbf{b}$: Consistency (2)}
+	\begin{theorem}[Rules for probability limits]
+		Let $ X_{n} $ and $ Y_{n} $ be sequences of random variables such that $ \plim\ X_{n} = c$ and $ \plim\ Y_{n} = d $. Then:
+		\begin{itemize}
+			\item $\plim(X_{n} + Y_{n}) = c + d$
+			\item $\plim(X_{n}Y_{n}) = cd$
+			\item $\plim(X_{n}/Y_{n}) = c/d$, if $ d \neq 0 $
+		\end{itemize}
+		If $ \mathbf{W}_{n} $ is a sequence of matrices of random variables and $ \plim\ \mathbf{W}_{n} = \boldsymbol\Omega $, then
+		\[
+			\plim\ \mathbf{W}_{n}^{-1} = \boldsymbol\Omega^{-1}.
+		\]
+		If $ \mathbf{X}_{n} $ and $ \mathbf{Y}_{n} $ are sequences of matrices of random variables with $ \plim\ \mathbf{X}_{n} = \mathbf{A}$ and $ \plim\ \mathbf{Y}_{n} = \mathbf{B}$ then
+		\[
+		\plim\ \mathbf{X}_{n}\mathbf{Y}_{n} = \mathbf{AB}
+		\]
+	\end{theorem}
+	\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Asymptotic Properties of $\mathbf{b}$: Consistency (3)}
+	\begin{itemize}
+		\item From this theorem we can in particular infer that 
+		\[
+			\underset{n\to\infty}{\plim}\left(\frac{\mathbf{X'X}}{n}\right)^{-1} = \mathbf{Q}^{-1}
+		\]
+		
+		\item The critical assumptions that were made might turn out to be too restrictive, especially in the case of trending or polynomial time series
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Asymptotic Properties of $\mathbf{b}$: Consistency (4)}
+	\begin{itemize}
+		\item The \textbf{Grenander assumptions} are a weaker alternative that includes most of the critical assumptions and ensures that the data matrix is ``well behaved'' in large samples:
+		\begin{enumerate}
+			\item $\displaystyle \lim_{n\to\infty}d^{2}_{nk} = \lim_{n\to \infty}\mathbf{x}'_{k}\mathbf{x}_{k} = + \infty$, where $\mathbf{x}_{k}$ is an arbitrary column of $\mathbf{X}$; interpretation: no variable will degenerate into a sequence of zeros
+			\item $\displaystyle \lim_{n\to\infty}\frac{x_{ik}^{2}}{d^{2}_{nk}} = 0,\,\forall i$; interpretation: there will be no single observation that dominates the sum
+			\item If $\mathbf{R}_{n}$ is the correlation matrix of the columns of $\mathbf{X}$ excluding the constant, then $\displaystyle \lim_{n\to\infty}\mathbf{R}_{n} = \mathbf{C}$, where $\mathbf{C}$ is positive definite; interpretation: $\mathbf{X}$ has full rank, i.e. there is no multicollinearity among regressors
+		\end{enumerate}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Asymptotic Properties of $\mathbf{b}$: Consistency (5)}
+	\begin{itemize}
+		\item Write the OLS estimator as: 
+		\[
+		\mathbf{b} = \bm\beta + \left(\frac{\mathbf{X'X}}{n}\right)^{-1}\left(\frac{\mathbf{X'}\bm\varepsilon}{n}\right)
+		\]
+		\item If the inverse of $\mathbf{Q}$ exists, then:
+		\[
+		\underset{n\to\infty}{\plim}\,\mathbf{b} = \bm\beta + \mathbf{Q}^{-1}\underset{n\to\infty}{\plim}\,\left(\frac{\mathbf{X'}\bm\varepsilon}{n}\right)
+		\]
+		\item Take the last term whose limit in probability we have to find:
+		\[
+		\frac{\mathbf{X'}\bm\varepsilon}{n} = \frac{1}{n}\sum_{i=1}^{n}\mathbf{x}_{i}\varepsilon_{i} =  \frac{1}{n}\sum_{i=1}^{n}\mathbf{w}_{i} =  \mathbf{\overline{w}}
+		\]
+		(In the above, $\mathbf{x}_{i}$ is the $i$th column of $\mathbf{X}$)
+		\item So, we can rewrite:
+		\[
+		\underset{n\to\infty}{\plim}\,\mathbf{b} = \bm\beta + \mathbf{Q}^{-1}\underset{n\to\infty}{\plim}\,\mathbf{\overline{w}}
+		\]
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Consistency (6)}
+\begin{itemize}
+	\item By assumption, in the CLRM the regressors are exogenous so (using the law of iterated expectations again):
+	\[
+		\mathsf{E}(\mathbf{w}_{i}) = \mathsf{E}_{\mathbf{X}}[\mathsf{E}(\mathbf{w}_{i}|\mathbf{x}_{i})] = \mathsf{E}_{\mathbf{X}}[\mathbf{x}_{i}\mathsf{E}(\varepsilon_{i}|\mathbf{x}_{i})] = \mathbf{0}
+	\]
+	\item This implies:
+	\[
+		\mathsf{E}(\overline{\mathbf{w}}) = \mathbf{0}
+	\]
+	\item With respect to the variance, use the variance decomposition formula:
+	\[
+		\var(\overline{\mathbf{w}}) = \mathsf{E}_{\mathbf{X}}[\var(\mathbf{\overline{\mathbf{w}}|X})] + \var_{X}[\mathsf{E}(\mathbf{\overline{\mathbf{w}}|X})] = \mathsf{E}_{\mathbf{X}}[\var(\mathbf{\overline{\mathbf{w}}|X})] + \mathbf{0}
+	\]
+	\item We have then:
+	\[
+		\begin{array}{lcl}
+			\var(\overline{\mathbf{w}}|\mathbf{X}) & = & \displaystyle \mathsf{E}(\overline{\mathbf{w}}\overline{\mathbf{w}}'|\mathbf{X}) = \mathsf{E}\left(\frac{\mathbf{X'}\bm\varepsilon}{n}\frac{\bm\varepsilon'\mathbf{X}}{n}|\mathbf{X}\right) = \frac{\mathbf{X'}}{n} \mathsf{E}(\bm\varepsilon\bm\varepsilon'|\mathbf{X})\frac{\mathbf{X}}{n} = \\
+			\quad\\
+			& = &  \left(\displaystyle\frac{\sigma^{2}}{n}\right) \left(\displaystyle\frac{\mathbf{X'}\mathbf{X}}{n}\right)
+		\end{array}
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Consistency (7)}
+\begin{itemize}
+	\item Taking the limit in probability of the latter results in:
+	\[
+		\underset{n\to\infty}{\plim}\, \var(\overline{\mathbf{w}}) = 0\cdot \mathbf{Q} = \mathbf{0}
+	\]
+	\item Using this result, we end up with:
+	\[		
+		\underset{n\to\infty}{\plim}\,\mathbf{b} = \bm\beta + \mathbf{Q}^{-1}\cdot \mathbf{0} = \bm\beta,
+	\]
+	which establishes consistency of $\mathbf{b}$ under OLS
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Distribution}
+\begin{itemize}
+	\item Finally, we will consider the asymptotic distribution of $\mathbf{b}$
+	\item Assume that in addition to the requirement that regressors and disturbances are uncorrelated, we have also independent observations
+	\item \textcolor{red}{Note that we do not make any assumption for normality of disturbances!}
+	\item Recall that we could also write the OLS estimator as:
+	\[
+		\mathbf{b} = \bm\beta + \left(\frac{\mathbf{X'X}}{n}\right)^{-1}\left(\frac{\mathbf{X'}\bm\varepsilon}{n}\right)
+	\]
+	\item We can rearrange this in the following way:
+	\[
+		\sqrt{n}(\mathbf{b} - \bm\beta) = \left(\frac{\mathbf{X'X}}{n}\right)^{-1}\left(\frac{\mathbf{X'}\bm\varepsilon}{\sqrt{n}}\right)
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Distribution (2)}
+\begin{itemize}
+	\item We know that $\displaystyle \underset{n\to\infty}{\plim}\frac{\mathbf{X'X}}{n} = \mathbf{Q}$; therefore, we only have to find the limiting distribution of what remains, i.e.:
+	\[
+		 \left(\frac{1}{\sqrt{n}}\right) \mathbf{X'}\bm\varepsilon = \left(\frac{1}{\sqrt{n}}\right)\cdot n \cdot \underbrace{\left(\frac{\mathbf{X'}\bm\varepsilon}{n}\right)}_{=\overline{\mathbf{w}}} = \sqrt{n}(\overline{\mathbf{w}} - \mathsf{E}(\overline{\mathbf{w}}))
+	\]
+	\item We will use the Lindenberg-Feller version of the Central Limit Theorem to  this end
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Distribution (3)}
+\begin{theorem}[Lindenberg-Feller Theorem]
+	Let $\{x_{i}\},\, i = 1,2,\ldots,n$ be a sequence of independent random variables with means $\mu_{i} < \infty$ and variances $\sigma^{2}_{i} < \infty$. Let also:
+	\[
+		\overline{\mu}_{n} = \frac{1}{n}\sum_{i=1}^{n}\mu_{i} \quad \textsc{\textit{and}} \quad \overline{\sigma}_{n} = \frac{1}{n}\sum_{i=1}^{n}\sigma_{i} 
+	\]
+	If $\displaystyle \lim_{n\to\infty} \frac{\max(\sigma_{i})}{n\overline{\sigma}_{n}}= 0$ (i.e. the largest term of the sum does not dominate the average), and if $\lim_{n\to\infty} \overline{\sigma}_{n} = \overline{\sigma} < \infty$, then:
+	\[
+		\sqrt{n}(\overline{x}_{n} - \overline{\mu}_{n}) \overset{d}{\to} \mathcal{N}(0, \overline{\sigma})
+	\]
+\end{theorem}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Distribution (4)}
+\begin{itemize}
+	\item Start with the fact that $\overline{\mathbf{w}}$ is the average of $n$ independent random vectors\footnote{The Theorem is also valid in a multivariate context.} $\mathbf{w}_{i} = \mathbf{x}_{i}\varepsilon_{i}$, with: 
+	\[
+		\begin{array}{lcl}
+			\mathsf{E}(\mathbf{w}_{i}) = \mathbf{0}\\
+			\var(\mathbf{w}_{i}) = \var(\mathbf{x}_{i}\varepsilon_{i}) = \sigma^{2}\mathsf{E}(\mathbf{x}_{i}\mathbf{x}_{i}') = \sigma^{2}\mathbf{Q}_{i}
+		\end{array}
+	\]
+	\item The variance of $\sqrt{n}$ times the average of all $\mathbf{w}_{i}$ (using independence) is:
+	\[
+		\var(\sqrt{n}\,\overline{\mathbf{w}}) = \var\left(\sqrt{n}\frac{1}{n}\sum_{i=1}^{n}\mathbf{w}_{i}\right) = \frac{1}{n}\sigma^{2}\sum_{i=1}^{n}\mathbf{Q}_{i} = \sigma^{2}\overline{\mathbf{Q}}_{n}
+	\]
+	\item If there is no $\mathbf{Q}_{i}$ which dominates the sum, then:
+	\[
+		\lim_{n\to\infty}\sigma^{2}\overline{\mathbf{Q}}_{n} = \sigma^{2}\mathbf{Q}
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Distribution (5)}
+\begin{itemize}
+	\item Now we apply the Lindenberg-Feller Theorem:
+	\[
+		\sqrt{n}(\overline{\mathbf{w}} - \mathsf{E}(\overline{\mathbf{w}})) = \left(\frac{1}{\sqrt{n}}\right) \mathbf{X'}\bm\varepsilon \overset{d}{\to} \mathcal{N}(\mathbf{0},\sigma^{2}\mathbf{Q})
+	\]
+	\item As a consequence:
+	\[
+		\mathbf{Q}^{-1}\left(\frac{1}{\sqrt{n}}\right) \mathbf{X'}\bm\varepsilon \overset{d}{\to} \mathcal{N}(\mathbf{Q}^{-1}\mathbf{0},\mathbf{Q}^{-1}\sigma^{2}\mathbf{Q}\mathbf{Q}^{-1})
+	\]
+	or:
+	\[
+		\sqrt{n}(\mathbf{b} - \bm\beta) \overset{d}{\to} \mathcal{N}(\mathbf{0},\sigma^{2}\mathbf{Q}^{-1})
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $\mathbf{b}$: Distribution (6)}
+\begin{theorem}
+	If $\{\varepsilon_{i}\}$ are independently distributed with mean 0 and variance $\sigma^{2}$ and the observations $x_{ik}$ comply with the Grenander conditions, then:
+	\[
+		\mathbf{b} \overset{asy}{\sim} \mathcal{N}\left(\bm\beta,\frac{\sigma^{2}}{n}\mathbf{Q}^{-1}\right)
+	\]
+\end{theorem}
+\begin{itemize}
+	\item Recall that we made no normality assumption
+	\item Yet we arrived at an asymptotically normal distribution for the OLS estimator
+	\item This follows from the CLT variant that we applied 
+	\item $\mathbf{Q}^{-1}/n$ is estimated in practice with $(\mathbf{X'X})^{-1}$
+	\item $\sigma^{2}$ is estimated with $\displaystyle s^{2} = \frac{\mathbf{e'e}}{n-k}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $s^{2}$: Consistency}
+\begin{itemize}
+	\item We will show that $s^{2}$ is a consistent estimator
+	\item Start from the fact that the OLS residuals are produced as follows:
+	\[
+		\mathbf{e = My}
+	\]
+	\item We can write this also as:
+	\[
+		\mathbf{e = M(X}\bm\beta + \bm\varepsilon) = \mathbf{MX}\bm\beta + \mathbf{M}\bm\varepsilon = \mathbf{M}\bm\varepsilon
+	\]
+	(because $\mathbf{MX = 0}$)
+	\item Then:
+	\[
+		\mathbf{e'e} = \bm\varepsilon'\mathbf{\mathbf{M'M}}\bm\varepsilon
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $s^{2}$: Consistency (2)}
+\begin{itemize}
+	\item But $\mathbf{M}$ is symmetric and idempotent, so:
+	\[
+		\mathbf{e'e} = \bm\varepsilon'\mathbf{\mathbf{M}}\bm\varepsilon
+	\]
+	\item Thus:
+	\[
+		\displaystyle s^{2} = \frac{\mathbf{e'e}}{n-k} = \frac{\bm\varepsilon'\mathbf{\mathbf{M}}\bm\varepsilon}{n-k}
+	\]
+	\item Substitute $\mathbf{I - X(X'X)}^{-1}\mathbf{X}'$ for its equal $\mathbf{M}$ and expand:
+	\[
+		s^{2} = \frac{n}{n-k}\left[ \frac{\bm\varepsilon'\bm\varepsilon}{n} - \left(\frac{\bm\varepsilon'\mathbf{X}}{n}\right) \left(\frac{\mathbf{X'X}}{n}\right)^{-1} \left(\frac{\mathbf{X'}\bm\varepsilon}{n}\right) \right]
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $s^{2}$: Consistency (3)}
+\begin{itemize}
+	\item The following limits are easy to see (some of them we established in the preceding discussion):
+	\[
+		\begin{array}{lcl}
+			\lim_{n\to\infty}\displaystyle\frac{n}{n-k} = 1\\
+			\plim_{n\to\infty}\displaystyle \left(\frac{\mathbf{X'X}}{n}\right)^{-1} = \mathbf{Q}^{-1}\\
+			\plim_{n\to\infty}\displaystyle \left(\frac{\mathbf{X'}\bm\varepsilon}{n}\right) = \plim_{n\to\infty}\displaystyle \left(\frac{\bm\varepsilon'\mathbf{X}}{n}\right) = \mathbf{0}
+		\end{array}
+	\]
+	\item Using the rules for multiplication of limits in probability, we finally end up with the following problem:
+	\[
+		\plim_{n\to\infty}s^{2} = \plim_{n\to\infty} \frac{\bm\varepsilon'\bm\varepsilon}{n} = \plim_{n\to\infty}\frac{1}{n}\sum_{i=1}^{n}\varepsilon_{i}^{2} = \overline{\varepsilon^{2}}
+	\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $s^{2}$: Consistency (4)}
+\begin{itemize}
+	\item By assumption, $\varepsilon_{i}^{2}$ are independent
+	\item Assume also that $\varepsilon_{i}$ are identically distributed
+	\item We will use the following two:
+	\begin{theorem}[Khinchin's Weak Law of Large Numbers]
+		If $x_{i},\, i = 1,\ldots, n$ is a random i.i.d. sample from a distribution with finite mean $\mathsf{E}(x_{i}) = \mu$, then:
+		\[
+			\plim_{n\to\infty}\overline{x} = \mu
+		\]
+	\end{theorem}
+	\begin{theorem}[Markov's Strong Law of Large Numbers]
+		If $\{z_{i}\}$ is a sequence of independent random variables with $\mathsf{E}(z_{i}) = \mu_{i} < \infty$ and if for some $\delta > 0,\,\sum_{i=1}^{\infty} \mathsf{E}(|z_{i} - \mu_i|^{1+\delta}]/i^{1+\delta} < \infty$, then
+		\[
+			\overline{z}_n - \overline{\mu}_n \overset{a.s.}{\to} 0
+		\]
+	\end{theorem}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $s^{2}$: Consistency (5)}
+\begin{itemize}
+	\item The mean of the random variables $\varepsilon_{i}^{2}$ is finite:
+	\[
+		\mathsf{E}(\varepsilon_{i}^{2}) = \sigma^{2} < +\infty
+	\]
+	\item Take $\delta = 1$; then $\mathsf{E}(|z_{i} - \mu_i|^{1+\delta}]$ becomes:
+	\[
+		\mathsf{E}(\varepsilon_{i}^{2} - \sigma^{2})^{2} = \mathsf{E}(\varepsilon_{i}^{4} - 2\varepsilon_{i}^{2}\sigma^{2} + \sigma^{4}) = \mathsf{E}(\varepsilon_{i}^{4}) - \sigma^{4}
+	\]
+	\item Assume now that $\mathsf{E}(\varepsilon_{i}^{4})$ is finite (quite an ``easy'' assumption) so that the RHS term above is finite
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Asymptotic Properties of $s^{2}$: Consistency (6)}
+\begin{itemize}
+	\item Then what follows is that:
+	\[
+		\plim_{n\to\infty} s^{2} = \sigma^{2}
+	\]
+	and
+	\[
+		\plim_{n\to\infty} s^{2}\left(\frac{1}{n}\mathbf{X'X}\right)^{-1} = \sigma^{2}\mathbf{Q}^{-1}
+	\]
+	\item Finally, we have the appropriate estimator of the asymptotic covariance matrix of $\mathbf{b}$:
+	\[
+		\mathrm{Est.Asy.}\,\var(\mathbf{b}) = s^{2}\left(\mathbf{X'X}\right)^{-1}
+	\]
+\end{itemize}
+\end{frame}
+
+\section{Interval Estimation}
+\begin{frame}
+	\frametitle{Interval Estimation: General Considerations}
+	\begin{itemize}
+		\item Objective: to present the best parameter estimate with an explicit expression of the estimate uncertainty, i.e.:
+		\[
+		\widehat{\theta} \pm \textrm{sampling variability}
+		\]
+		
+		\item If we want complete certainty, then we should take $ \widehat{\theta} \pm \infty $: \textcolor{red}{Not informative!}
+		\item  If we stick to $ \widehat{\theta} \pm 0 $, this is also not desirable since the probability of being 100\% precise is 0
+		\item The point is to select some $ \alpha \in (0, 1) $ so that a $ (100 - \alpha) $\% confidence interval is constructed
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Forming a Confidence Interval for a Coefficient}
+	\begin{itemize}
+		\item Assume that the disturbances $ \varepsilon_{i} $ are normally distributed
+		\item Then for any element of $ \mathbf{b} $,
+		\[
+		b_{k} \sim \mathcal{N}(\beta_{k}, \sigma^{2}(\mathbf{X'X})^{-1}_{kk})
+		\]
+		\item Standardize the latter to get
+		\[
+		z_{k} = \dfrac{b_{k} - \beta_{k}}{\sqrt{\sigma^{2}(\mathbf{X'X})^{-1}_{kk}}} \sim \mathcal{N}(0,1)
+		\]
+		\item Form a 95\% confidence interval for $ z_{k} $:
+		\[
+		Prob[-1.96 \leq z_{k} \leq 1.96] = 0.95
+		\]
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Forming a Confidence Interval for a Coefficient (2)}
+	\begin{itemize}
+		\item Return to the definition of $ z_{k} $ to rewrite the latter as follows:
+		\[
+		\begin{array}{lcl}
+		Prob\left[b_{k} - 1.96\sqrt{\sigma^{2}(\mathbf{X'X})^{-1}_{kk}} \leq \beta_{k} \leq b_{k} +  1.96\sqrt{\sigma^{2}(\mathbf{X'X})^{-1}_{kk}}\right] = \\
+		\quad\\
+		= 0.95
+		\end{array}
+		\]
+		\item However, the true variance is unknown; therefore, the ratio is modified so that the true variance is replaced by $ s^{2} $ (the estimated regression variance):
+		\[
+		t_{k} = \dfrac{b_{k} - \beta_{k}}{\sqrt{s^{2}(\mathbf{X'X})^{-1}_{kk}}} \sim t_{n - K}
+		\]
+		\item The latter is used to construct confidence intervals and test hypotheses about the elements of $ \boldsymbol\beta $
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Forming a Confidence Interval for a Coefficient (3)}
+	\begin{itemize}
+		\item In particular, a confidence interval for $ \beta_{k} $ would be
+		\[
+		\begin{array}{lcl}
+		Prob\left[b_{k} - t_{(1 - \alpha/2), [n - K]}\sqrt{s^{2}S^{kk}} \leq \beta_{k} \leq b_{k} +  t_{(1 - \alpha/2), [n - K]}\sqrt{s^{2}S^{kk}}\right] = \\
+		\quad\\
+		= 1 - \alpha
+		\end{array}
+		\]
+		
+		where $ S^{kk} =  (\mathbf{X'X})^{-1}_{kk} $ and $ t_{(1 - \alpha/2), [n - K]} $ is the corresponding critical value from the $ t $ distribution 
+	\end{itemize}	
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Forming a Confidence Interval for a Coefficient (4)}
+	\begin{itemize}
+		\item If the random disturbances $ \boldsymbol\varepsilon $ are not normally distributed, then the result that the following statistic has a limiting standard normal distribution is used:
+		\[
+		z_{k} = \dfrac{\sqrt{n}(b_{k} - \beta_{k})}{\sqrt{\sigma^{2}\mathbf{Q}^{kk}}}
+		\]
+		where $ \mathbf{Q} = \left[\plim\left(\dfrac{\mathbf{X'X}}{n}\right)\right]^{-1}$ 
+		\item The Slutsky theorem:
+		\begin{theorem}[Slutsky]
+			If $ g(x_{n}) $ is a continuous function of $ x_{n} $ but not of $ n $, then 
+			\[
+			\plim\ g(x_{n}) = g(\plim\ x_{n})
+			\]
+		\end{theorem}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Forming a Confidence Interval for a Coefficient (5)}
+	\begin{itemize}
+		\item This theorem allows us to replace $ \sigma^{2} $ in the formula with $ s^{2} $ (a consistent estimator)
+		\item The statistic modified this way still has the standard normal limiting distribution
+		\item Since for a relatively large number of degrees of freedom (which also means relatively large sample size) the $ t $ distribution is indistinguishable from the normal one, the confidence interval would be
+		\[
+		\begin{array}{lcl}
+		Prob\left[b_{k} - z_{(1 - \alpha/2)}\sqrt{\Esta(b_{k})} \leq \beta_{k} \leq b_{k} + \right. \\
+		\quad\\
+		\left. + z_{(1 - \alpha/2)}\sqrt{\Esta(b_{k})}\right] = \\
+		\quad\\
+		= 1 - \alpha
+		\end{array}
+		\]
+	\end{itemize}
+\end{frame}
+
+\section{References}
+\begin{frame}[fragile]
+\frametitle{References}
+\begin{itemize}
+	\item Greene, W. (2013): \emph{Econometric Analysis}, Pearson, 7th edn., ch. 3-4
+	\item Davidson, R. and J. MacKinnon (2003): \emph{Econometric Theory and Methods}, Oxford University Press, ch. 3
+	\item Judge, G., W. Griffiths, R. Hill and T.-C. Lee (1980): \emph{The Theory and Practice of Econometrics}, Wiley, 2nd edn., ch. 2
+\end{itemize}
+\end{frame}
+
+\appendix
+\section{Extras}
+\begin{frame}[fragile]
+	\frametitle{Derivation}
+	\label{deriv}
+	\hyperlink{mainslide}{\beamerreturnbutton{Back}}
+	\vspace{0.5cm}
+	\[
+	\begin{array}{lcl}
+		\mathbf{(y - Xb)'(y - Xb)} & = & \mathbf{(y' - b'X')(y - Xb)} = \\
+		\quad\\
+		& = & \mathbf{y'y - y'Xb - b'X'y - b'X'Xb} 
+	\end{array}
+	\]
+	\begin{itemize}
+		\item Now we only need to show that $\mathbf{y'Xb = b'X'y}$
+		
+		\item Note that $\mathbf{y}$ is $(n \times 1)$, $\mathbf{X}$ is $(n\times k)$, and $\mathbf{b}$ is $(k\times 1)$
+		
+		\item Therefore any of the two will be $(1\times 1)$, i.e. a scalar
+		
+		\item Since any of the two is the transpose of the other one, and given that those are scalars, the two expressions are equal
+	\end{itemize}
+\end{frame}
+
+
+
+\end{document}
